@@ -2,5 +2,5 @@
     "title": "Playermodel Health Scaling",
     "type": "gamemode",
     "tags": ["fun", "realism"],
-    "ignore": [".git", ".git/*", "*.git", "LICENSE", ".idea", ".idea/*", "*.idea"]
+    "ignore": [".git", ".git/*", "*.git", ".gitignore", "LICENSE", ".idea", ".idea/*", "*.idea"]
 }
