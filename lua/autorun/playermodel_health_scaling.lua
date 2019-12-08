@@ -24,7 +24,7 @@ function PHS:get_line(list_file)
         return nil
     end
     local line, _ = string.gsub(line, "\n", "")
-if debug == 1 then print("PHS: The line is: "..line) end
+    if debug == 1 then print("PHS: The line is: "..line) end
     return line
 end
 
