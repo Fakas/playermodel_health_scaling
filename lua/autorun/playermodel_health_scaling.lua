@@ -6,7 +6,6 @@ PHS.__index = PHS
 CreateConVar("phs_enable", "1", FCVAR_NONE, "Enable Playermodel Health Scaling", 0, 1)
 CreateConVar("phs_debug", "0", FCVAR_NONE, "Enable debug messages in the console", 0, 1)
 CreateConVar("phs_health_modifier", "100", FCVAR_NONE, "Global health modifier", 0)
-CreateConVar("phs_health_file", "data/phs/playermodel_health.txt", FCVAR_NONE, "Path to playermodel health file")
 
 -- Set up commands
 concommand.Add("phs_rescale", function() PHS:scale_all() end, nil, "Perform health scaling on all alive players with their current playermodels")
@@ -63,15 +62,20 @@ end
 function PHS:init()
     -- Initialise setup for PHS
     local debug = GetConVar("phs_debug"):GetInt()
+    
     print("PHS: Initialising Playermodel Health Scaling!")
-    PHS["health_file"] = GetConVar("phs_health_file"):GetString()
-
-    local count = 0
-    local list_file = file.Open(PHS["health_file"], "r", "MOD")
+    local file_name = "phs_playermodel_health.txt"
+    if debug == 1 then print("Checking for playermodel health file...") end
+    local list_file
+    if not file.Exists(file_name, "DATA") then
+        list_file = file.Open(file_name, "w", "DATA")
+    else
+        list_file = file.Open(file_name, "r", "DATA")
+    end
+    
     local playermodel_health = {}
-    if debug == 1 then print("Reading model/health key/value pairs from "..PHS["health_file"]) end
+    if debug == 1 then print("Reading model/health key/value pairs from playermodel health file...") end
     while true do
-        count = count + 1
         local model_line = PHS:get_line(list_file)
         local health_line = PHS:get_line(list_file)
         if model_line == nil or health_line == nil then
