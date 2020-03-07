@@ -53,9 +53,13 @@ function PHS:scale(player)
     -- Scale a player's health based on their playermodel
     local debug = GetConVar("phs_debug"):GetInt()
     if debug == 1 then print("Scaling health of player \""..player:Nick().."\"...") end
+    if player.phs_immunity ~= 0 then
+        if debug == 1 then print("Player has immunity so health will not be scaled!") end
+        return
+    end
     if GetConVar("phs_enable"):GetInt() == 1 then
         -- We have to set this 0 timer to prevent the gamemode from overriding our health changes
-        timer.Simple(0, function() PHS:set_health(player, PHS:get_health(player:GetModel())) end)
+        timer.Simple(0.2, function() PHS:set_health(player, PHS:get_health(player:GetModel())) end)
     end
 end
 
@@ -86,8 +90,45 @@ function PHS:init()
     end
     list_file:Close()
     PHS["playermodel_health"] = playermodel_health
-    hook.Add("PlayerSpawn", "PlayermodelHealthScaling", function(player) PHS:scale(player) end)
+
+    -- Set up hooks
+    hook.Add("PlayerSpawn", "PHS_SetImmunity", function(player) PHS:set_immunity(player, 0) end) -- Set the player's initial PHS immunity level
+    hook.Add("PlayerSpawn", "PHS_PlayerSpawn", function(player) PHS:scale(player) end) -- Scale health on player spawn
+    hook.Add("TTTPrepareRound", "PHS_TTTPrepareRound", function() PHS:wipe_immunity(1) end) -- Wipe immunity before round start
+    hook.Add("TTTBeginRound", "PHS_TTTBeginRound", function() PHS:wipe_immunity(1) end) -- Wipe immunity on round start
+    hook.Add("TTTEndRound", "PHS_TTTEndRound", function(_) PHS:wipe_immunity(1) end) -- Wipe immunity on round end
+
     print("PHS: Done initialising Playermodel Health Scaling!")
+end
+
+function PHS:wipe_immunity(level)
+    -- Wippe immunity at or below a certian level from all players
+    local players = player.GetAll()
+    for _, ply in pairs(players) do
+        PHS:clear_immunity(ply, level)
+    end
+end
+
+function PHS:clear_immunity(ply, level)
+    -- Remove immunity at or below a certain level from a player
+    if ply.phs_immunity == nil or ply.phs_immunity <= level then
+        ply.phs_immunity = 0
+    end
+end
+
+function PHS:set_immunity(ply, level)
+    -- Ensure player has an immunity value
+    if ply.phs_immunity == nil then
+        ply.phs_immunity = level
+    end
+end
+
+function PHS:scale_all()
+    -- Scale every player's health
+    players = player.GetAll()
+    for _, ply in pairs(players) do
+        PHS:scale(ply)
+    end
 end
 
 -- First time init
